@@ -60,8 +60,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith("signer_"):
         code = query.data.split("_")[1]
         user_states[query.from_user.id] = code
-        await query.edit_message_text(f"✅ Подписант выбран: {code}
-📷 Пожалуйста, отправьте фото письма.")
+        await query.edit_message_text(f"✅ Подписант выбран: {code}\n📷 Пожалуйста, отправьте фото письма.")
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
