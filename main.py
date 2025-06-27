@@ -8,7 +8,7 @@ from datetime import datetime
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "7242725938:AAF4kjuq-pW1yKRQ65H94xa2uAoT067dfcE"
 DEST_GROUP_ID = int(os.getenv("DEST_GROUP_ID") or "-4603122462")
-AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321, 931156301, 5169701031, 5169167062, 2775849, 5615990266, 161924982]")
+AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321, 931156301]")
 
 SUBSCRIBERS = {
     "Эшанкулов Х. М.": "01",
@@ -20,11 +20,10 @@ SUBSCRIBERS = {
     "Любушкина М.": "01-07"
 }
 
-# Установка логгера
+# Логгер
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-
-# Чтение/обновление счётчика
+# Функция счётчика
 def get_and_increment_counter():
     if not os.path.exists("counter.txt"):
         with open("counter.txt", "w") as f:
@@ -36,18 +35,16 @@ def get_and_increment_counter():
         f.truncate()
     return value + 1
 
-
-# Хранилище для временных данных пользователя
+# Хранилище состояний
 user_states = {}
 
-
-# Команды
+# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.id not in AUTHORIZED_USERS:
         await update.message.reply_text("⛔ У вас нет доступа к этому боту.")
 
-        # Отправка ID в группу
+        # Уведомление в группу
         message = (
             f"🚫 Неавторизованный пользователь:\n"
             f"👤 Username: @{user.username or '—'}\n"
@@ -60,7 +57,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Добро пожаловать! Выберите действие:", reply_markup=reply_markup)
 
-
+# Обработка кнопок
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -70,22 +67,17 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Выберите, пожалуйста, подписанта письма:", reply_markup=reply_markup)
 
-
     elif query.data.startswith("signer_"):
-
         code = query.data.split("_")[1]
-
-        user_states[query.from_user.id] = code
-
         count = get_and_increment_counter()
-
         full_number = f"{code}/{count}"
+        user_states[query.from_user.id] = full_number  # сохраняем весь номер
 
-        user_states[query.from_user.id] = code  # сохранить юникод для следующего шага (handle_photo)
+        await query.edit_message_text(
+            f"✅ Подписант выбран: {full_number}\n📷 Пожалуйста, отправьте фото письма."
+        )
 
-        await query.edit_message_text(f"✅ Подписант выбран: {full_number}\n📷 Пожалуйста, отправьте фото письма.")
-
-
+# Обработка фото
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
@@ -97,13 +89,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Пожалуйста, сначала выберите подписанта через кнопку.")
         return
 
-    signer_code = user_states.pop(user_id)
-
-    # signer_code уже содержит только код без номера, значит, надо вытащить номер из сообщения?
-    # НЕТ — давай сохраним сразу готовый full_number в user_states
-
-    # ОБНОВИМ: теперь сохраняем full_number (01-01/341) в user_states:
-    full_number = signer_code  # теперь это уже "01-01/341"
+    full_number = user_states.pop(user_id)
     date_str = datetime.now().strftime("%d.%m.%Y")
 
     caption = (
@@ -114,14 +100,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     photo = update.message.photo[-1]
-    file_id = photo.file_id
-    await context.bot.send_photo(chat_id=DEST_GROUP_ID, photo=file_id, caption=caption)
+    await context.bot.send_photo(chat_id=DEST_GROUP_ID, photo=photo.file_id, caption=caption)
 
     await update.message.reply_text(
         f"✅ Номер письма: {full_number}\nФото успешно отправлено."
     )
 
-
+# Запуск
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -129,7 +114,5 @@ def main():
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.run_polling()
 
-
 if __name__ == "__main__":
     main()
-    # force redeploy
