@@ -8,7 +8,7 @@ from datetime import datetime
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "7242725938:AAF4kjuq-pW1yKRQ65H94xa2uAoT067dfcE"
 DEST_GROUP_ID = int(os.getenv("DEST_GROUP_ID") or "-4603122462")
-AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321]")
+AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321, 931156301]")
 
 SUBSCRIBERS = {
     "Эшанкулов Х. М.": "01",
