@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "7242725938:AAF4kjuq-pW1yKRQ65H94xa2uAoT067dfcE"
-DEST_GROUP_ID = int(os.getenv("DEST_GROUP_ID") or "-1001234567890")
+DEST_GROUP_ID = int(os.getenv("DEST_GROUP_ID") or "-4603122462")
 AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321]")
 
 SUBSCRIBERS = {
@@ -47,7 +47,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user.id not in AUTHORIZED_USERS:
         await update.message.reply_text("⛔ У вас нет доступа к этому боту.")
 
-        # Отправка ID в закрытую группу
+        # Отправка ID в группу
         message = (
             f"🚫 Неавторизованный пользователь:\n"
             f"👤 Username: @{user.username or '—'}\n"
