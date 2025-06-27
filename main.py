@@ -98,13 +98,17 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     signer_code = user_states.pop(user_id)
-    count = get_and_increment_counter()
-    number = f"{signer_code}/{count}"
+
+    # signer_code уже содержит только код без номера, значит, надо вытащить номер из сообщения?
+    # НЕТ — давай сохраним сразу готовый full_number в user_states
+
+    # ОБНОВИМ: теперь сохраняем full_number (01-01/341) в user_states:
+    full_number = signer_code  # теперь это уже "01-01/341"
     date_str = datetime.now().strftime("%d.%m.%Y")
 
     caption = (
         f"📤 Исходящее письмо\n"
-        f"Номер: {number}\n"
+        f"Номер: {full_number}\n"
         f"Дата: {date_str}\n"
         f"Отправил: @{update.effective_user.username or update.effective_user.id}"
     )
@@ -114,7 +118,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_photo(chat_id=DEST_GROUP_ID, photo=file_id, caption=caption)
 
     await update.message.reply_text(
-        f"✅ Номер письма: {number}\nФото успешно отправлено."
+        f"✅ Номер письма: {full_number}\nФото успешно отправлено."
     )
 
 
