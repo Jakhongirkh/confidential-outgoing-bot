@@ -23,6 +23,7 @@ SUBSCRIBERS = {
 # Установка логгера
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+
 # Чтение/обновление счётчика
 def get_and_increment_counter():
     if not os.path.exists("counter.txt"):
@@ -35,8 +36,10 @@ def get_and_increment_counter():
         f.truncate()
     return value + 1
 
+
 # Хранилище для временных данных пользователя
 user_states = {}
+
 
 # Команды
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -48,6 +51,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Добро пожаловать! Выберите действие:", reply_markup=reply_markup)
 
+
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -56,11 +60,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton(name, callback_data=f"signer_{code}")] for name, code in SUBSCRIBERS.items()]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Выберите, пожалуйста, подписанта письма:", reply_markup=reply_markup)
-    
+
     elif query.data.startswith("signer_"):
         code = query.data.split("_")[1]
         user_states[query.from_user.id] = code
         await query.edit_message_text(f"✅ Подписант выбран: {code}\n📷 Пожалуйста, отправьте фото письма.")
+
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -78,16 +83,21 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     number = f"{signer_code}/{count}"
     date_str = datetime.now().strftime("%d.%m.%Y")
 
-    caption = f"📤 Исходящее письмо
-Номер: {number}
-Дата: {date_str}
-Отправил: @{update.effective_user.username or update.effective_user.id}"
-    
+    caption = (
+        f"📤 Исходящее письмо\n"
+        f"Номер: {number}\n"
+        f"Дата: {date_str}\n"
+        f"Отправил: @{update.effective_user.username or update.effective_user.id}"
+    )
+
     photo = update.message.photo[-1]
     file_id = photo.file_id
     await context.bot.send_photo(chat_id=DEST_GROUP_ID, photo=file_id, caption=caption)
-    await update.message.reply_text(f"✅ Номер письма: {number}
-Фото успешно отправлено.")
+
+    await update.message.reply_text(
+        f"✅ Номер письма: {number}\nФото успешно отправлено."
+    )
+
 
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -95,6 +105,7 @@ def main():
     app.add_handler(CallbackQueryHandler(button))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
