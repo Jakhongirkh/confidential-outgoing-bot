@@ -8,7 +8,7 @@ from datetime import datetime
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN") or "7242725938:AAF4kjuq-pW1yKRQ65H94xa2uAoT067dfcE"
 DEST_GROUP_ID = int(os.getenv("DEST_GROUP_ID") or "-4603122462")
-AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321, 931156301]")
+AUTHORIZED_USERS = json.loads(os.getenv("AUTHORIZED_USERS") or "[123456789, 987654321, 931156301, 5169701031, 5169167062, 2775849, 5615990266, 161924982]")
 
 SUBSCRIBERS = {
     "Эшанкулов Х. М.": "01",
@@ -70,10 +70,20 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Выберите, пожалуйста, подписанта письма:", reply_markup=reply_markup)
 
+
     elif query.data.startswith("signer_"):
+
         code = query.data.split("_")[1]
+
         user_states[query.from_user.id] = code
-        await query.edit_message_text(f"✅ Подписант выбран: {code}\n📷 Пожалуйста, отправьте фото письма.")
+
+        count = get_and_increment_counter()
+
+        full_number = f"{code}/{count}"
+
+        user_states[query.from_user.id] = code  # сохранить юникод для следующего шага (handle_photo)
+
+        await query.edit_message_text(f"✅ Подписант выбран: {full_number}\n📷 Пожалуйста, отправьте фото письма.")
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
