@@ -43,8 +43,17 @@ user_states = {}
 
 # Команды
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in AUTHORIZED_USERS:
+    user = update.effective_user
+    if user.id not in AUTHORIZED_USERS:
         await update.message.reply_text("⛔ У вас нет доступа к этому боту.")
+
+        # Отправка ID в закрытую группу
+        message = (
+            f"🚫 Неавторизованный пользователь:\n"
+            f"👤 Username: @{user.username or '—'}\n"
+            f"🆔 ID: {user.id}"
+        )
+        await context.bot.send_message(chat_id=DEST_GROUP_ID, text=message)
         return
 
     keyboard = [[InlineKeyboardButton("📄 Получить номер исходящего письма", callback_data="get_number")]]
